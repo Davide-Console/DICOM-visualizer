@@ -18,11 +18,13 @@ import cv2.cv2 as cv2
 # inizializzazione tkinter interpreter, attribuzione di titolo e geometria della finestra root
 root = Tk()
 root.title('DICOM visualizer')
-# root.attributes('-fullscreen', True)
+root.attributes('-fullscreen', True)
 
 # scelta directory contenente le tomografie tramite finestra di dialogo e
 # creazione lista dei path di tutte i file .dcm presenti nella directory
 slices = []
+slice0 = ()
+directory = []
 answer = 1
 while answer == 1:
     directory = filedialog.askdirectory(master=root, initialdir='C:/')
@@ -31,14 +33,15 @@ while answer == 1:
             if file.endswith('.dcm'):
                 slices.append(os.path.join(dirName, file))
     answer = 0
+    # verifica di aver selezionato una cartella contenente file .dcm
     try:
         slice0 = pd.dcmread(slices[0])
-    except:
-        answer = messagebox.askyesno(master=root, message='No file found.\nWant to retry?')
+    except IndexError:
+        answer = messagebox.askyesno(master=root, message='File not found.\nWant to retry?')
 
 try:
     slice0 = pd.dcmread(slices[0])
-except:
+except IndexError:
     quit()
 
 # estrazione tag
@@ -107,6 +110,8 @@ entry_des.grid(row=5, column=1)
 des_l = Label(root, text='CORONAL TOMOGRAPHIES:')
 des_l.grid(row=0, column=2, columnspan=5)
 
+# l'immagine viene interpolata lungo l'asse orizzontale per raggiungere le stesse dimensioni della tomografia assiale
+# e poi viene mostrata sul canvas
 canvas_crn = Canvas(root, width=dimensions[0], height=dimensions[1], bg='gray')
 canvas_crn.grid(row=1, column=2, rowspan=8, columnspan=5)
 ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[0, :, :, 1]).resize((dimensions[0], dimensions[1]),
@@ -118,6 +123,8 @@ canvas_crn.create_image(257, 257, anchor='c', image=ca1)
 
 def slide_crn(val):
     global ca1
+
+    # mostra la sezione coronale del valore indicato dallo slider
     canvas_crn.delete(ca1)
     ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[int(val), :, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
@@ -133,13 +140,20 @@ slider_crn.grid(row=9, column=2, columnspan=5)
 def paint_crn(event):
     global ca, ca1, ca2
     global masked_dicom
-    x1, y1 = (event.x - 2), (event.y - 2)
-    x2, y2 = (event.x + 2), (event.y + 2)
+
+    # definisco gli estremi in orizzontale e verticale del quadrato di pixel selezionato usando il mouse
+    x1, y1, x2, y2 = (event.x - 2), (event.y - 2), (event.x + 2), (event.y + 2)
+
+    # per ogni pixel interno agli estremi del quadrato, si pone =1 il corrispondente elemento di mask
     for j in range(x1, x2):
         for k in range(y1, y2):
             if j in range(dimensions[0]) and k in range(dimensions[1]):
                 mask[int(slider_crn.get()), k, round(j*int(dimensions[2])/int(dimensions[1])), 1] = 1
+
+    # si mostrano le nuove immagini ottenute mascherando il dicom_array
     canvas_axl.delete(ca)
+    canvas_axl.delete(ca1)
+    canvas_axl.delete(ca2)
     masked_dicom = np.ma.masked_array(dicom_array, mask, fill_value=255)
     ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get(), 1]))
     canvas_axl.create_image(257, 257, anchor='c', image=ca)
@@ -165,12 +179,17 @@ def zoom_crn(val):
     global dx_crn
     global dy_crn
     global slider_crn
+
+    # se il valore è 1, l'immagine è a grandezza naturale e il widget per cambiare immagine è attivo
     if int(val) == 1:
         dx_crn = 0
         dy_crn = 0
         slider_crn.config(state=NORMAL, takefocus=0)
         canvas_crn.delete(img_zoom_c)
         slide_crn(int(slider_crn.get()))
+
+    # se il valore è superiore a 1, l'immagine viene ingrandita del valore selezionato e il widget per cambiare
+    # immagine viene disattivo
     else:
         slider_crn.config(state=DISABLED, takefocus=0)
         if dx_crn > int(val)+2:
@@ -198,6 +217,8 @@ slide_zoom_crn.grid(row=10, column=2, rowspan=2)
 def left_crn():
     global img_zoom_c
     global dx_crn
+
+    # è possibile muovere l'immagine solo se essa è stata zoomata e se non sono superati i bordi dell'immagine
     if int(slide_zoom_crn.get()) != 1 and dx_crn < (int(slide_zoom_crn.get())+2):
         x = 32*slide_zoom_crn.get()
         dx_crn = dx_crn + 1
@@ -280,13 +301,14 @@ slider_sgt.grid(row=9, column=12, columnspan=5)
 def paint_sgt(event):
     global ca, ca1, ca2
     global masked_dicom
-    x1, y1 = (event.x - 1), (event.y - 3)
-    x2, y2 = (event.x + 1), (event.y + 3)
+    x1, y1, x2, y2 = (event.x - 2), (event.y - 2), (event.x + 2), (event.y + 2)
     for j in range(x1, x2):
         for k in range(y1, y2):
             if j in range(dimensions[0]) and k in range(dimensions[1]):
                 mask[k, int(slider_sgt.get()), round(j*int(dimensions[2])/int(dimensions[0])), 1] = 1
     canvas_axl.delete(ca)
+    canvas_axl.delete(ca1)
+    canvas_axl.delete(ca2)
     masked_dicom = np.ma.masked_array(dicom_array, mask, fill_value=255)
     ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get(), 1]))
     canvas_axl.create_image(257, 257, anchor='c', image=ca)
@@ -425,13 +447,14 @@ slider_axl.grid(row=9, column=7, columnspan=5)
 def paint_axl(event):
     global ca, ca1, ca2
     global masked_dicom
-    x1, y1 = (event.x - 2), (event.y - 2)
-    x2, y2 = (event.x + 2), (event.y + 2)
+    x1, y1, x2, y2 = (event.x - 2), (event.y - 2), (event.x + 2), (event.y + 2)
     for j in range(x1, x2):
         for k in range(y1, y2):
             if j in range(dimensions[1]) and k in range(dimensions[0]):
                 mask[k, j, int(slider_axl.get()), 1] = 1
     canvas_axl.delete(ca)
+    canvas_axl.delete(ca1)
+    canvas_axl.delete(ca2)
     masked_dicom = np.ma.masked_array(dicom_array, mask, fill_value=255)
     ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get(), 1]))
     canvas_axl.create_image(257, 257, anchor='c', image=ca)
@@ -540,16 +563,13 @@ down_b_axl = Button(root, width=25, height=5, text='v', command=down_axl)
 down_b_axl.grid(row=11, column=9, columnspan=2)
 
 #---------------------------------------- ALTRE FUNZIONI ----------------------------------------#
-
 # funzione per rimuovere la maschera
 
 
 def clear_all():
     global mask
     global masked_dicom
-    global ca
-    global ca1
-    global ca2
+    global ca, ca1, ca2
     mask = np.ma.empty_like(dicom_array)
     masked_dicom = np.ma.masked_array(dicom_array, mask)
     canvas_axl.delete(ca)
@@ -573,3 +593,5 @@ button_quit = Button(root, text='Exit', command=root.quit)
 button_quit.grid(row=20, column=1)
 
 root.mainloop()
+
+exit()
