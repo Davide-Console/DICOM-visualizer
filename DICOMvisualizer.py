@@ -18,7 +18,7 @@ import cv2.cv2 as cv2
 # inizializzazione tkinter interpreter, attribuzione di titolo e geometria della finestra root
 root = Tk()
 root.title('DICOM visualizer')
-#root.attributes('-fullscreen', True)
+root.attributes('-fullscreen', True)
 
 # scelta directory contenente le tomografie tramite finestra di dialogo e
 # creazione lista dei path di tutte i file .dcm presenti nella directory
@@ -115,21 +115,21 @@ des_l.grid(row=0, column=2, columnspan=5)
 # e poi viene mostrata sul canvas
 canvas_crn = Canvas(root, width=dimensions[0], height=dimensions[1], bg='gray')
 canvas_crn.grid(row=1, column=2, rowspan=8, columnspan=5)
-ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[0, :, :, 1]).resize((dimensions[0], dimensions[1]),
-                                                                                Image.LANCZOS))
-canvas_crn.create_image(257, 257, anchor='c', image=ca1)
+canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[0, :, :, 1]).resize((dimensions[0], dimensions[1]),
+                                                                                         Image.LANCZOS))
+canvas_crn.create_image(257, 257, anchor='c', image=canvas_img_c)
 
 # slider tomografie
 
 
 def slide_crn(val):
-    global ca1
+    global canvas_img_c
 
     # mostra la sezione coronale del valore indicato dallo slider
-    canvas_crn.delete(ca1)
-    ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[int(val)-1, :, :, 1]).resize(
+    canvas_crn.delete(canvas_img_c)
+    canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[int(val) - 1, :, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_crn.create_image(257, 257, anchor='c', image=ca1)
+    canvas_crn.create_image(257, 257, anchor='c', image=canvas_img_c)
 
 
 slider_crn = Scale(root, from_=1, to=dimensions[0], length=450, orient=HORIZONTAL, command=slide_crn)
@@ -139,7 +139,7 @@ slider_crn.grid(row=9, column=2, columnspan=5)
 
 
 def paint_crn(event):
-    global ca, ca1, ca2
+    global canvas_img_a, canvas_img_c, canvas_img_s
     global masked_dicom
 
     # definisco gli estremi in orizzontale e verticale del quadrato di pixel selezionato usando il mouse
@@ -152,18 +152,18 @@ def paint_crn(event):
                 mask[slider_crn.get()-1, k, round(j*int(dimensions[2])/dimensions[1]), 1] = 1
 
     # si mostrano le nuove immagini ottenute mascherando il dicom_array
-    canvas_axl.delete(ca)
-    canvas_axl.delete(ca1)
-    canvas_axl.delete(ca2)
+    canvas_axl.delete(canvas_img_a)
+    canvas_crn.delete(canvas_img_c)
+    canvas_sgt.delete(canvas_img_s)
     masked_dicom = np.ma.masked_array(dicom_array, mask, fill_value=255)
-    ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get()-1, 1]))
-    canvas_axl.create_image(257, 257, anchor='c', image=ca)
-    ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get()-1, :, :, 1]).resize(
+    canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get() - 1, 1]))
+    canvas_axl.create_image(257, 257, anchor='c', image=canvas_img_a)
+    canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get() - 1, :, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_crn.create_image(257, 257, anchor='c', image=ca1)
-    ca2 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get()-1, :, 1]).resize(
+    canvas_crn.create_image(257, 257, anchor='c', image=canvas_img_c)
+    canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get() - 1, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_sgt.create_image(257, 257, anchor='c', image=ca2)
+    canvas_sgt.create_image(257, 257, anchor='c', image=canvas_img_s)
 
 
 canvas_crn.bind('<B1-Motion>', paint_crn)
@@ -175,7 +175,7 @@ img_zoom_c = []
 
 
 def zoom_crn(val):
-    global ca1
+    global canvas_img_c
     global img_zoom_c
     global dx_crn, dy_crn
     global slider_crn
@@ -201,11 +201,11 @@ def zoom_crn(val):
         elif dy_crn < -(int(val)+2):
             dy_crn = -(int(val)+2)
         resized = ndimage.zoom(masked_dicom[slider_crn.get()-1, :, :, 1], int(val))
-        canvas_crn.delete(ca1)
-        ca1 = ImageTk.PhotoImage(image=Image.fromarray(resized).resize(
+        canvas_crn.delete(canvas_img_c)
+        canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(resized).resize(
             (dimensions[0]*int(val), dimensions[1]*int(val)), Image.LANCZOS))
         img_zoom_c = canvas_crn.create_image((257+(32*int(val)*dx_crn)), (257+(32*int(val)*dy_crn)), anchor='c',
-                                             image=ca1)
+                                             image=canvas_img_c)
 
 
 slide_zoom_crn = Scale(root, from_=4, to=1, command=zoom_crn)
@@ -276,19 +276,19 @@ des_l.grid(row=0, column=12, columnspan=5)
 
 canvas_sgt = Canvas(root, width=dimensions[0], height=dimensions[1], bg='gray')
 canvas_sgt.grid(row=1, column=12, rowspan=8, columnspan=5)
-ca2 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, 0, :, 1]).resize((dimensions[0], dimensions[1]),
-                                                                                Image.LANCZOS))
-canvas_sgt.create_image(257, 257, anchor='c', image=ca2)
+canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, 0, :, 1]).resize((dimensions[0], dimensions[1]),
+                                                                                         Image.LANCZOS))
+canvas_sgt.create_image(257, 257, anchor='c', image=canvas_img_s)
 
 # slider tomografie
 
 
 def slide_sgt(val):
-    global ca2
-    canvas_sgt.delete(ca2)
-    ca2 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, int(val)-1, :, 1]).resize(
+    global canvas_img_s
+    canvas_sgt.delete(canvas_img_s)
+    canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, int(val) - 1, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_sgt.create_image(257, 257, anchor='c', image=ca2)
+    canvas_sgt.create_image(257, 257, anchor='c', image=canvas_img_s)
 
 
 slider_sgt = Scale(root, from_=1, to=dimensions[1], length=450, orient=HORIZONTAL, command=slide_sgt)
@@ -299,25 +299,25 @@ slider_sgt.grid(row=9, column=12, columnspan=5)
 
 
 def paint_sgt(event):
-    global ca, ca1, ca2
+    global canvas_img_a, canvas_img_c, canvas_img_s
     global masked_dicom
     x1, y1, x2, y2 = (event.x - 2), (event.y - 2), (event.x + 2), (event.y + 2)
     for j in range(x1, x2):
         for k in range(y1, y2):
             if j in range(dimensions[0]) and k in range(dimensions[1]):
                 mask[k, slider_sgt.get()-1, round(j*int(dimensions[2])/dimensions[0]), 1] = 1
-    canvas_axl.delete(ca)
-    canvas_axl.delete(ca1)
-    canvas_axl.delete(ca2)
+    canvas_axl.delete(canvas_img_a)
+    canvas_crn.delete(canvas_img_c)
+    canvas_sgt.delete(canvas_img_s)
     masked_dicom = np.ma.masked_array(dicom_array, mask, fill_value=255)
-    ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get()-1, 1]))
-    canvas_axl.create_image(257, 257, anchor='c', image=ca)
-    ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get()-1, :, :, 1]).resize(
+    canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get() - 1, 1]))
+    canvas_axl.create_image(257, 257, anchor='c', image=canvas_img_a)
+    canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get() - 1, :, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_crn.create_image(257, 257, anchor='c', image=ca1)
-    ca2 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get()-1, :, 1]).resize(
+    canvas_crn.create_image(257, 257, anchor='c', image=canvas_img_c)
+    canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get() - 1, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_sgt.create_image(257, 257, anchor='c', image=ca2)
+    canvas_sgt.create_image(257, 257, anchor='c', image=canvas_img_s)
 
 
 canvas_sgt.bind('<B1-Motion>', paint_sgt)
@@ -330,7 +330,7 @@ img_zoom_s = []
 
 
 def zoom_sgt(val):
-    global ca2
+    global canvas_img_s
     global img_zoom_s
     global dx_sgt, dy_sgt
     global slider_sgt
@@ -351,11 +351,11 @@ def zoom_sgt(val):
         elif dy_sgt < -(int(val)+2):
             dy_sgt = -(int(val)+2)
         resized = ndimage.zoom(masked_dicom[:, slider_sgt.get()-1, :, 1], int(val))
-        canvas_sgt.delete(ca2)
-        ca2 = ImageTk.PhotoImage(image=Image.fromarray(resized).resize(
+        canvas_sgt.delete(canvas_img_s)
+        canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(resized).resize(
             (dimensions[0]*int(val), dimensions[1]*int(val)), Image.LANCZOS))
         img_zoom_s = canvas_sgt.create_image((257+(32*int(val)*dx_sgt)), (257+(32*int(val)*dy_sgt)), anchor='c',
-                                             image=ca2)
+                                             image=canvas_img_s)
 
 
 slide_zoom_sgt = Scale(root, from_=4, to=1, command=zoom_sgt)
@@ -423,18 +423,18 @@ des_l.grid(row=0, column=7, columnspan=5)
 
 canvas_axl = Canvas(root, width=dimensions[0], height=dimensions[1], bg='gray')
 canvas_axl.grid(row=1, column=7, rowspan=8, columnspan=5)
-ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, 0, 1]))
-canvas_axl.create_image(257, 257, anchor='c', image=ca)
+canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, 0, 1]))
+canvas_axl.create_image(257, 257, anchor='c', image=canvas_img_a)
 
 # slider tomografie
 
 
 def slide_axl(val):
-    global ca
+    global canvas_img_a
     global masked_dicom
-    canvas_axl.delete(ca)
-    ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, int(val)-1, 1]))
-    canvas_axl.create_image(257, 257, anchor='c', image=ca)
+    canvas_axl.delete(canvas_img_a)
+    canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, int(val) - 1, 1]))
+    canvas_axl.create_image(257, 257, anchor='c', image=canvas_img_a)
 
 
 slider_axl = Scale(root, from_=1, to=dimensions[2], length=450, orient=HORIZONTAL, command=slide_axl)
@@ -444,25 +444,25 @@ slider_axl.grid(row=9, column=7, columnspan=5)
 
 
 def paint_axl(event):
-    global ca, ca1, ca2
+    global canvas_img_a, canvas_img_c, canvas_img_s
     global masked_dicom
     x1, y1, x2, y2 = (event.x - 2), (event.y - 2), (event.x + 2), (event.y + 2)
     for j in range(x1, x2):
         for k in range(y1, y2):
             if j in range(dimensions[1]) and k in range(dimensions[0]):
                 mask[k, j, slider_axl.get()-1, 1] = 1
-    canvas_axl.delete(ca)
-    canvas_axl.delete(ca1)
-    canvas_axl.delete(ca2)
+    canvas_axl.delete(canvas_img_a)
+    canvas_crn.delete(canvas_img_c)
+    canvas_sgt.delete(canvas_img_s)
     masked_dicom = np.ma.masked_array(dicom_array, mask, fill_value=255)
-    ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get()-1, 1]))
-    canvas_axl.create_image(257, 257, anchor='c', image=ca)
-    ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get()-1, :, :, 1]).resize(
+    canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get() - 1, 1]))
+    canvas_axl.create_image(257, 257, anchor='c', image=canvas_img_a)
+    canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get() - 1, :, :, 1]).resize(
             (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_crn.create_image(257, 257, anchor='c', image=ca1)
-    ca2 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get()-1, :, 1]).resize(
+    canvas_crn.create_image(257, 257, anchor='c', image=canvas_img_c)
+    canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get() - 1, :, 1]).resize(
             (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_sgt.create_image(257, 257, anchor='c', image=ca2)
+    canvas_sgt.create_image(257, 257, anchor='c', image=canvas_img_s)
 
 
 canvas_axl.bind('<B1-Motion>', paint_axl)
@@ -474,7 +474,7 @@ img_zoom_a = []
 
 
 def zoom_axl(val):
-    global ca
+    global canvas_img_a
     global masked_dicom
     global img_zoom_a
     global dx_axl, dy_axl
@@ -496,10 +496,10 @@ def zoom_axl(val):
         elif dy_axl < -(int(val)+2):
             dy_axl = -(int(val)+2)
         resized = ndimage.zoom(masked_dicom[:, :, slider_axl.get()-1, 1], int(val))
-        canvas_axl.delete(ca)
-        ca = ImageTk.PhotoImage(image=Image.fromarray(resized))
+        canvas_axl.delete(canvas_img_a)
+        canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(resized))
         img_zoom_a = canvas_axl.create_image((257+(32*int(val)*dx_axl)), (257+(32*int(val)*dy_axl)), anchor='c',
-                                             image=ca)
+                                             image=canvas_img_a)
 
 
 slide_zoom_axl = Scale(root, from_=4, to=1, command=zoom_axl)
@@ -567,20 +567,20 @@ down_b_axl.grid(row=11, column=9, columnspan=2)
 def clear_all():
     global mask
     global masked_dicom
-    global ca, ca1, ca2
+    global canvas_img_a, canvas_img_c, canvas_img_s
     mask = np.ma.empty_like(dicom_array)
     masked_dicom = np.ma.masked_array(dicom_array, mask)
-    canvas_axl.delete(ca)
-    ca = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get()-1, 1]))
-    canvas_axl.create_image(257, 257, anchor='c', image=ca)
-    canvas_crn.delete(ca1)
-    ca1 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get()-1, :, :, 1]).resize(
+    canvas_axl.delete(canvas_img_a)
+    canvas_img_a = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, :, slider_axl.get() - 1, 1]))
+    canvas_axl.create_image(257, 257, anchor='c', image=canvas_img_a)
+    canvas_crn.delete(canvas_img_c)
+    canvas_img_c = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[slider_crn.get() - 1, :, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_crn.create_image(257, 257, anchor='c', image=ca1)
-    canvas_sgt.delete(ca2)
-    ca2 = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get()-1, :, 1]).resize(
+    canvas_crn.create_image(257, 257, anchor='c', image=canvas_img_c)
+    canvas_sgt.delete(canvas_img_s)
+    canvas_img_s = ImageTk.PhotoImage(image=Image.fromarray(masked_dicom[:, slider_sgt.get() - 1, :, 1]).resize(
         (dimensions[0], dimensions[1]), Image.LANCZOS))
-    canvas_sgt.create_image(257, 257, anchor='c', image=ca2)
+    canvas_sgt.create_image(257, 257, anchor='c', image=canvas_img_s)
 
 
 button_clear = Button(root, text='Clear All', command=clear_all)
