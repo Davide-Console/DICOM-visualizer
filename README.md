@@ -1,6 +1,6 @@
 # DICOM visualizer
 
-##INFORMAZIONI GENERALI
+# INFORMAZIONI GENERALI
 Interfaccia grafica per la visualizzazione di immagini DICOM in vista sagittale, coronale e assiale.
 Consente lo zoom e il pan delle immagini tramite gli slider e i button presenti sotto le immagini, così come la segmentazione manuale tramite la selezione con il mouse dei pixel sulle immagini.
 
