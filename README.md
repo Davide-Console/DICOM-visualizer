@@ -7,16 +7,19 @@ Consente lo zoom e il pan delle immagini tramite gli slider e i button presenti 
 ## REQUISITI
 Le librerie necessarie sono le seguenti:
 
-os\n
-tk == 8.6
-numpy == 1.20.2
-pydicom == 2.1.2
-Pillow == 8.2.0
-scipy == 1.6.2
-opencv-python==4.5.1.48
+* os
+* tk == 8.6
+* numpy == 1.20.2
+* pydicom == 2.1.2
+* Pillow == 8.2.0
+* scipy == 1.6.2
+* opencv-python==4.5.1.48
 
 Per installare le librerie elencate, eseguire il comando:
+
+```
 pip install -r requirements.txt
+```
 
 ## VISUALIZZAZIONE
 La dimensione dello schermo del pc potrebbe essere troppo piccola per visualizzare la GUI nella sua interezza.
