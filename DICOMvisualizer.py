@@ -33,7 +33,8 @@ while answer == 1:
             if file.endswith('.dcm'):
                 slices.append(os.path.join(dirName, file))
     answer = 0
-    # verifica di aver selezionato una cartella contenente file .dcm
+
+    # verifica di aver selezionato una cartella contenente almeno un file .dcm
     try:
         slice0 = pd.dcmread(slices[0])
     except IndexError:
@@ -44,9 +45,10 @@ try:
 except IndexError:
     quit()
 
-# estrazione tag
+# estrazione tag (dimensione immmagini e data)
 dimensions = (slice0.Rows, slice0.Columns, len(slices), 2)
 date = slice0.get('StudyDate', 'NA')
+
 # inizializzazione array 3d
 dicom_array = np.zeros(dimensions)
 
@@ -55,7 +57,7 @@ for i in slices:
     axl_img_1 = pd.dcmread(i)
     axl_img_1to2 = cv2.normalize(axl_img_1.pixel_array, None, 255, 0, cv2.NORM_MINMAX)
 
-    # merge di due array per risolvere problemi di visualizzazione dell'array mascherato
+    # merge di due array per risolvere i problemi di visualizzazione dell'array mascherato
     axl_img_2 = cv2.merge([axl_img_1to2, axl_img_1to2])
     dicom_array[:, :, slices.index(i), :] = axl_img_2
 
@@ -212,6 +214,8 @@ slide_zoom_crn = Scale(root, from_=4, to=1, command=zoom_crn)
 slide_zoom_crn.grid(row=10, column=2, rowspan=2)
 
 #funzioni per muoversi sull'immagine zoomata
+step_x = dimensions[0]/16
+step_y = dimensions[1]/16
 
 
 def left_crn():
@@ -220,7 +224,7 @@ def left_crn():
 
     # è possibile muovere l'immagine solo se essa è stata zoomata e se non sono superati i bordi dell'immagine
     if slide_zoom_crn.get() != 1 and dx_crn < (slide_zoom_crn.get()+2):
-        x = 32*slide_zoom_crn.get()
+        x = step_x*slide_zoom_crn.get()
         dx_crn = dx_crn + 1
         y = 0
         canvas_crn.move(img_zoom_c, x, y)
@@ -230,7 +234,7 @@ def right_crn():
     global img_zoom_c
     global dx_crn
     if slide_zoom_crn.get() != 1 and dx_crn > -(slide_zoom_crn.get()+2):
-        x = -32*slide_zoom_crn.get()
+        x = -step_x*slide_zoom_crn.get()
         dx_crn = dx_crn - 1
         y = 0
         canvas_crn.move(img_zoom_c, x, y)
@@ -241,7 +245,7 @@ def up_crn():
     global dy_crn
     if slide_zoom_crn.get() != 1 and dy_crn < (slide_zoom_crn.get()+2):
         x = 0
-        y = 32*slide_zoom_crn.get()
+        y = step_y*slide_zoom_crn.get()
         dy_crn = dy_crn + 1
         canvas_crn.move(img_zoom_c, x, y)
 
@@ -251,7 +255,7 @@ def down_crn():
     global dy_crn
     if slide_zoom_crn.get() != 1 and dy_crn > -(slide_zoom_crn.get()+2):
         x = 0
-        y = -32*slide_zoom_crn.get()
+        y = -step_y*slide_zoom_crn.get()
         dy_crn = dy_crn - 1
         canvas_crn.move(img_zoom_c, x, y)
 
@@ -368,7 +372,7 @@ def left_sgt():
     global img_zoom_s
     global dx_sgt
     if slide_zoom_sgt.get() != 1 and dx_sgt < (slide_zoom_sgt.get()+2):
-        x = 32*slide_zoom_sgt.get()
+        x = step_x*slide_zoom_sgt.get()
         dx_sgt = dx_sgt + 1
         y = 0
         canvas_sgt.move(img_zoom_s, x, y)
@@ -378,7 +382,7 @@ def right_sgt():
     global img_zoom_s
     global dx_sgt
     if slide_zoom_sgt.get() != 1 and dx_sgt > -(slide_zoom_sgt.get()+2):
-        x = -32*slide_zoom_sgt.get()
+        x = -step_x*slide_zoom_sgt.get()
         dx_sgt = dx_sgt - 1
         y = 0
         canvas_sgt.move(img_zoom_s, x, y)
@@ -389,7 +393,7 @@ def up_sgt():
     global dy_sgt
     if slide_zoom_sgt.get() != 1 and dy_sgt < (slide_zoom_sgt.get()+2):
         x = 0
-        y = 32*slide_zoom_sgt.get()
+        y = step_y*slide_zoom_sgt.get()
         dy_sgt = dy_sgt + 1
         canvas_sgt.move(img_zoom_s, x, y)
 
@@ -399,7 +403,7 @@ def down_sgt():
     global dy_sgt
     if slide_zoom_sgt.get() != 1 and dy_sgt > -(slide_zoom_sgt.get()+2):
         x = 0
-        y = -32*slide_zoom_sgt.get()
+        y = -step_y*slide_zoom_sgt.get()
         dy_sgt = dy_sgt - 1
         canvas_sgt.move(img_zoom_s, x, y)
 
@@ -512,7 +516,7 @@ def left_axl():
     global img_zoom_a
     global dx_axl
     if slide_zoom_axl.get() != 1 and dx_axl < (slide_zoom_axl.get()+2):
-        x = 32*slide_zoom_axl.get()
+        x = step_x*slide_zoom_axl.get()
         dx_axl = dx_axl+1
         y = 0
         canvas_axl.move(img_zoom_a, x, y)
@@ -522,7 +526,7 @@ def right_axl():
     global img_zoom_a
     global dx_axl
     if slide_zoom_axl.get() != 1 and dx_axl > -(slide_zoom_axl.get()+2):
-        x = -32*slide_zoom_axl.get()
+        x = -step_x*slide_zoom_axl.get()
         dx_axl = dx_axl-1
         y = 0
         canvas_axl.move(img_zoom_a, x, y)
@@ -533,7 +537,7 @@ def up_axl():
     global dy_axl
     if slide_zoom_axl.get() != 1 and dy_axl < (slide_zoom_axl.get()+2):
         x = 0
-        y = 32*slide_zoom_axl.get()
+        y = step_y*slide_zoom_axl.get()
         dy_axl = dy_axl+1
         canvas_axl.move(img_zoom_a, x, y)
 
@@ -543,7 +547,7 @@ def down_axl():
     global dy_axl
     if slide_zoom_axl.get() != 1 and dy_axl > -(slide_zoom_axl.get()+2):
         x = 0
-        y = -32*slide_zoom_axl.get()
+        y = -step_y*slide_zoom_axl.get()
         dy_axl = dy_axl - 1
         canvas_axl.move(img_zoom_a, x, y)
 
