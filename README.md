@@ -7,7 +7,7 @@ Consente lo zoom e il pan delle immagini tramite gli slider e i button presenti 
 ## REQUISITI
 Le librerie necessarie sono le seguenti:
 
-os
+os\n
 tk == 8.6
 numpy == 1.20.2
 pydicom == 2.1.2
