@@ -11,7 +11,7 @@ The needed libraries are the following:
 * tk == 8.6
 * numpy == 1.20.2
 * pydicom == 2.1.2
-* Pillow == 8.2.0
+* Pillow == 8.3.2
 * scipy == 1.6.2
 * opencv-python==4.5.1.48
 
