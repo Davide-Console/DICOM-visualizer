@@ -1,5 +1,7 @@
 # DICOM visualizer
 
+- ###  Davide Console ([@Davide-Console](https://github.com/Davide-Console)) <br> davide.console@mail.polimi.it
+
 ## GENERAL INFORMATION
 Graphic User Interface for DICOM images' visualization on sagittal, coronal and axial plane.
 The images can be zoomed and moved using slider and buttons. The manual segmentation can be done selecting the pixels directly on the image with the left button of the mouse.
