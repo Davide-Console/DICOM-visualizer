@@ -11,19 +11,14 @@ Upon starting the application, a dialog window prompts the user to select a dire
 ### Dataset Elaboration
 The selected DICOM images are analyzed and stored in a 3D array. Images are displayed in 8-bit greyscale, and pixel values are normalized to avoid oversaturation.
 
-<p align="center"> <img align="center" src="./images/GUI3.png" width="300" /> <p/>
-![DICOM Image](path/to/dicom_image.png)
-*Fig 3. DICOM image*
-<p align="center"> <img align="center" src="./images/GUI4.png" width="300" /> <p/>
-![DICOM Image Normalized](path/to/dicom_image_normalized.png)
-*Fig 4. DICOM image normalized*
+<p align="center"> <img align="center" src="./images/GUI3.png" width="300" /> <img align="center" src="./images/GUI4.png" width="300" /> <p/>
+<p align="center"> original DICOM image vs normalized DICOM image </p>
 
 ### Tag Extraction and First Screen
 DICOM files contain various metadata, such as imaging modality, exam date, and description. This information is displayed on the GUI using Tkinter labels and entries.
 
-<p align="center"> <img align="center" src="./images/GUI5.png" width="300" /> <p/>
-![First GUI Screen](path/to/first_gui_screen.png)
-*Fig 5. First GUI screen*
+<p align="center"> <img align="center" src="./images/GUI5.png" width="500" /> <p/>
+<p align="center"> First GUI screen </p>
 
 ## Functionalities
 
@@ -34,14 +29,13 @@ Each view has a slider to scroll through the images. The selected image replaces
 The zoom functionality allows images to be enlarged up to four times their original size. Directional buttons enable movement across the zoomed image. Zoom and segmentation cannot be performed simultaneously.
 
 <p align="center"> <img align="center" src="./images/GUI7.png" width="300" /> <p/>
-![Zoom Slider and Directional Buttons](path/to/zoom_slider_directional_buttons.png)
-*Fig 10. Zoom slider and directional buttons*
+<p align="center"> Zoom slider and directional buttons </p>
 
 ### Manual Segmentation
 Users can manually segment images by selecting pixels with the mouse. A mask array stores binary values to highlight selected areas. This functionality allows detailed examination of specific regions.
 
-<p align="center"> <img align="center" src="./images/GUI11.png" width="300" /> <p/>
-*Fig 11. Manual segmentation of the oropharynx and the tracheobronchial tree*
+<p align="center"> <img align="center" src="./images/GUI11.png" width="600" /> <p/>
+<p align="center"> Manual segmentation of the oropharynx and the tracheobronchial tree </p>
 
 
 
